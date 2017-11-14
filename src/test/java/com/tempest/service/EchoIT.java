@@ -1,4 +1,4 @@
-package com.dev.spring;
+package com.tempest.service;
 
 import org.junit.Test;
 
