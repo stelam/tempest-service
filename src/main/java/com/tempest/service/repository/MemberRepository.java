@@ -11,6 +11,6 @@ import org.springframework.data.repository.CrudRepository;
 
 import com.tempest.service.model.Member;
 
-public interface MemberRepository  extends CrudRepository<Member, Long>{
-    List<Member> findByName(String lastName);
+public interface MemberRepository extends CrudRepository<Member, Long>{
+    Member findOneByUsername(String username);
 }
