@@ -9,13 +9,17 @@ import javax.persistence.*;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "members")
-public class Member {
+public class Member implements UserDetails {
+    static final long serialVersionUID = 1L;
+
     @GenericGenerator(
         name = "usersSequenceGenerator",
         strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
@@ -28,11 +32,11 @@ public class Member {
 
     @Id
     @GeneratedValue(generator = "usersSequenceGenerator")
-    @Column(name = "member_id")
+    @Column(name = "member_id", nullable = false, updatable = false)
     private long id;
 
-    @Column(unique = true)
-    private String name;
+    @Column(unique = true, nullable = false)
+    private String username;
 
     @Column(unique = true)
     private String email;
@@ -43,6 +47,13 @@ public class Member {
     @Enumerated(EnumType.STRING)
     private Rank rank;
 
+    @Enumerated(EnumType.STRING)
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<Role> roles;
+
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled;
+
     @ManyToMany(cascade = CascadeType.ALL)
     @JsonBackReference
     @JoinTable(name = "member_attendances",
@@ -50,7 +61,50 @@ public class Member {
             inverseJoinColumns = @JoinColumn(name = "node_war_id", referencedColumnName = "node_war_id"))
     private Set<NodeWar> node_wars = new HashSet<NodeWar>();
 
+    @Column(nullable = false)
     private String password;
+
+    public void grantAuthority(Role authority) {
+        if ( roles == null ) roles = new ArrayList<>();
+        roles.add(authority);
+    }
+
+    @Override
+    public List<GrantedAuthority> getAuthorities(){
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        roles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role.toString())));
+        return authorities;
+    }
+
+
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return null;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 
 
     public long getId() {
@@ -61,14 +115,6 @@ public class Member {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getEmail() {
         return email;
     }
@@ -77,8 +123,8 @@ public class Member {
         this.email = email;
     }
 
-    public String getPassword() {
-        return password;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public void setPassword(String password) {

@@ -5,12 +5,13 @@ package com.tempest.service.repository;
  */
 
 
-import java.util.List;
-
-import org.springframework.data.repository.CrudRepository;
-
 import com.tempest.service.model.Member;
+import org.springframework.data.repository.CrudRepository;
+import java.util.Optional;
 
-public interface MemberRepository  extends CrudRepository<Member, Long>{
-    List<Member> findByName(String lastName);
+public interface MemberRepository extends CrudRepository<Member, Long>{
+    Optional<Member> findByUsername(String username);
+    Member save(Member member);
+    void deleteMemberById(Long id);
+
 }
