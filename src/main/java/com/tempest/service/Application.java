@@ -6,6 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,10 +43,12 @@ public class Application {
 	}
 
 	@Bean
-	CommandLineRunner init(
-			MemberService memberService
-	) {
-		return (evt) -> Arrays.asList(
+	CommandLineRunner init(MemberService memberService) {
+		try {
+			memberService.findMemberByUsername("admin");
+			return null;
+		} catch (UsernameNotFoundException e) {
+			return (evt) -> Arrays.asList(
 				"user,admin,john,robert,ana".split(",")).forEach(
 				username -> {
 					Member member = new Member();
@@ -56,7 +59,8 @@ public class Application {
 						member.grantAuthority(Role.ROLE_ADMIN);
 					memberService.registerMember(member);
 				}
-		);
+			);
+		}
 	}
 
 	public static void main(String[] args) {
