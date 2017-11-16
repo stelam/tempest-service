@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -35,6 +36,9 @@ public class AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private Environment environment;
+
     @Bean
     public UserDetailsService userDetailsService(){
         return new MemberService();
@@ -51,24 +55,24 @@ public class AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.inMemory()
-                .withClient("trusted-app")
+                .withClient(environment.getProperty("TEMPEST_OAUTH_CLIENT_NAME"))
                 .authorizedGrantTypes("client_credentials", "password", "refresh_token")
                 .authorities(Role.ROLE_TRUSTED_CLIENT.toString())
                 .scopes("read", "write")
                 .resourceIds(resourceId)
                 .accessTokenValiditySeconds(accessTokenValiditySeconds)
                 .refreshTokenValiditySeconds(refreshTokenValiditySeconds)
-                .secret("secret")
+                .secret(environment.getProperty("TEMPEST_OAUTH_CLIENT_SECRET"))
                 .and()
                 // client responsible for account registration
-                .withClient("register-app")
+                .withClient(environment.getProperty("TEMPEST_OAUTH_REGISTERER_NAME"))
                 .authorizedGrantTypes("client_credentials")
                 .authorities(Role.ROLE_REGISTER.toString())
                 .scopes("register")
                 .accessTokenValiditySeconds(10)
                 .refreshTokenValiditySeconds(10)
                 .resourceIds(resourceId)
-                .secret("secret");
+                .secret(environment.getProperty("TEMPEST_OAUTH_REGISTERER_NAME"));
     }
 
     @Bean
@@ -79,7 +83,7 @@ public class AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
     @Bean
     public JwtAccessTokenConverter accessTokenConverter() {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-        converter.setSigningKey("abcd");
+        converter.setSigningKey(environment.getProperty("TEMPEST_JWT_SIGNING_KEY"));
         return converter;
     }
 
