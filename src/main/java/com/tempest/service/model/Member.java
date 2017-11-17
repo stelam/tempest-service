@@ -64,9 +64,20 @@ public class Member implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    public void grantAuthority(Role authority) {
-        if ( roles == null ) roles = new ArrayList<>();
-        roles.add(authority);
+    @Column(nullable = false)
+    private boolean accountNonExpired = true;
+
+    @Column(nullable = false)
+    private boolean accountNonLocked = true;
+
+    @Column(nullable = false)
+    private boolean credentialsNonExpired = true;
+
+    public Member() {
+        this.accountNonExpired = true;
+        this.accountNonLocked = true;
+        this.credentialsNonExpired = true;
+        this.enabled = true;
     }
 
     @Override
@@ -76,6 +87,10 @@ public class Member implements UserDetails {
         return authorities;
     }
 
+    public void grantAuthority(Role authority) {
+        if ( roles == null ) roles = new ArrayList<>();
+        roles.add(authority);
+    }
 
     public String getPassword() {
         return password;
@@ -83,24 +98,21 @@ public class Member implements UserDetails {
 
     @Override
     public String getUsername() {
-        return null;
+        return username;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return accountNonExpired;
     }
-
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return accountNonLocked;
     }
-
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return credentialsNonExpired;
     }
-
     @Override
     public boolean isEnabled() {
         return enabled;
